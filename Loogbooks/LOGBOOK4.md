@@ -1,0 +1,2 @@
+TASK 2
+step 3 - Since the two files are identical when compared with the diff command, this means that the child process inherited the same environment as the parent process at the moment of the fork() call.
