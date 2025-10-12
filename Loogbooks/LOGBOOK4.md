@@ -15,7 +15,7 @@ After compiling the program and following the steps from the previous task to ch
    $ gcc mynewset.c (name of the program)
    $ sudo chown root a.out (changing the exacutable output of the program to root)
    $ sudo shmod 4755 a.out (making it a SET-UID program)
-A new director needs to be created, here I choose the name malicious, and put in front of PATH:
+A new directory needs to be created. Here I chose the name malicious, and put it in front of PATH:
    $ mkdir -p ~/malicious
    $ export PATH="$HOME/malicious:$PATH"
 And created a program called ls.c inside said directory with the code:
