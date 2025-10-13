@@ -15,14 +15,14 @@ After compiling the program and following the steps from the previous task to ch
 
    $ gcc mynewset.c (name of the program)
    $ sudo chown root a.out (changing the exacutable output of the program to root)
-   $ sudo shmod 4755 a.out (making it a SET-UID program)
+   $ sudo chmod 4755 a.out (making it a SET-UID program)
 
 A new directory needs to be created. Here I chose the name malicious, and put it in front of PATH:
 
    $ mkdir -p ~/malicious
    $ export PATH="$HOME/malicious:$PATH"
 
-And created a program called ls.c inside said directory with the code:
+And created a file than will receive the root priprogram called ls.c inside said directory with the code:
 
 "#include <unistd.h>
 #include <stdio.h>
@@ -36,3 +36,18 @@ int main()
 
 ls.c then needs to be compiled:
    $ gcc ~/malicious/ls.c -o ~/malicious/ls
+
+???
+
+TASK 8:
+step 1 - Like the previous task, we'll run the program catall.c, change its owner to root, and make it a Set-UID program with the following instructions:
+
+   $ gcc catall.c -o catall
+   $ sudo chown root catall
+   $ sudo chmod 4755 catall
+
+We can now create a non-writable, root-owned file to test out code, with the following command:
+
+ $ sudo sh -c 'echo "lab test" > /tmp/lab_test_file && chown root:root /tmp/lab_test_file && chmod 644 /tmp/lab_test_file'
+ ???
+
