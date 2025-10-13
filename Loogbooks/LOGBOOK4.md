@@ -30,7 +30,8 @@ And created a file than will receive the root priprogram called ls.c inside said
 
 int main()
 {
-	system("chmod 0777 /home/seed/malicious/file");
+   printf("malicious");
+	system("chmod 777 /home/seed/malicious/file");
 	return 0;
 }"
 
