@@ -1,3 +1,28 @@
+TASK 1:
+
+To simplify the visualization, we'll only pay attention to the PWD enrionment variable, for which running the printenv and env commands return:
+
+   $ printenv PWD
+
+   returns: "/home/seed/task1/Labsetup"
+
+   $ env | grep PWD
+
+   returns: "PWD=/home/seed/task1/Labsetup
+   OLDPWD=/home/seed" (since I had changed to the Labsetup directory using "cd task1/Labsetup")
+
+Using now export, we can create a variable, such as : "$ export VARIABLE='var'", and using printenv and env to check the new variable we get:
+
+   $ printenv VARIABLE
+
+   returns: "var"
+
+   $ env | grep VARIABLE
+
+   returns: "VARIABLE=var"
+
+If we now use "$ unset VARIABLE", both "$ printenv VARIABLE" and "$ env | grep VARIABLE" don't return anything.
+
 TASK 2:
 
 step 3 - Since the two files are identical when compared with the diff command, this means that the child process inherited the same environment as the parent process at the moment of the fork() call.
@@ -137,6 +162,29 @@ However, there are several ways to mitigate this exploit, such as:
 
    if (setresuid(uid, uid, uid) == -1);
 
-3. Closing fd with the command "close(fd);" before the execution of the execve() command.
+3.Closing fd with the command "close(fd);" before the execution of the execve() command.
+
+We should now try testing one of this methods to see if the capability leak was solved. We'll use the first method as an example:
+
+Changing the cap_leak.c file open statement to the one used for the first method, "fd = open("/etc/zzz", O_RDWR | O_APPEND | O_CLOEXEC);" we need to recompile and give the program the same permissions from before:
+
+   $ gcc cap_leak.c -o capleak
+
+   $ sudo chown root:root capleak
+
+   $ sudo chmod +s capleak
+
+We should also check if the /etc/zzz file still exists with the same privileges, for which would can use the command "$ ls -l /etc/zzz". Running this command in the terminal returns the following:
+
+"-rw-r--r-- 1 root root 29 Oct 13 16:00 /etc/zzz" Showing that the file indeed still exists and has the same privileges as before.
+
+Additionally, using the command "$ cat /etc/zzz" we can see the contents of the file are the same as well, since the message we wrote before is still desplayed: "I'm writing inside this file".
+
+Running the program with "$ ./capleak", it still returns "fd is 3", which means that lowest unused file descriptor is still 3, so the exploit from before should've still work if the program wasn't changed (if /etc/zzz wasn't closed on execution). So we'll do the same thing as before to test it:
+
+   $ echo "This should not be written" >&3
+
+Which now returns: "zsh: 3: bad file descriptor" because fd 3 was closed on execve() due to O_CLOEXEC. We can still check the content of the file using "$ sudo cat /etc/zzz" and it still shows the same thing as before, "I'm writing inside this file", meaning that "This should not be written" wasn't able to be written into the file and that the capability leak from before was fixed.
+
 
 
