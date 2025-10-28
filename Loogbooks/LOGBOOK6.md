@@ -97,7 +97,7 @@ Ambas as abordagens tiveram sucessso.
 
 ### 1.3 Conclusões
 
-- `%s` é o mais fiável para crash rápido; `%x` tende só a imprimir valores inteiros e raramente crasha por si só. `%n` pode crashar, mas é mais útil nas tarefas de escrita.
+- `%s` é o mais fiável para crash rápido; `%8x` tende só a imprimir valores inteiros e não é certo que crashe por si só.
 - Se nada crashar, aumentar a contagem de `%s`.
 
 ---
