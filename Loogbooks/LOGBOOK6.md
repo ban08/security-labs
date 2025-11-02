@@ -97,7 +97,7 @@ Ambas as abordagens tiveram sucessso.
 
 ### 1.3 Conclusões
 
-- `%s` é o mais fiável para crash rápido; `%8x` tende só a imprimir valores inteiros e não é certo que crashe por si só.
+- `%s` é o mais fiável para crash rápido; `%x` tende só a imprimir valores inteiros e raramente crasha por si só. `%n` pode crashar, mas é mais útil nas tarefas de escrita.
 - Se nada crashar, aumentar a contagem de `%s`.
 
 ---
@@ -174,36 +174,6 @@ Observações:
 Resumo Task 2:
 - 2.A: OFFSET determinado como 63 usando o marcador `DCBAabcd`
 - 2.B: Ao colocar `0x080b4008` como primeiro dword do payload e usar `%s` na posição certa, obtivemos a impressão de `A secret message` a partir da memória do processo.
-
-
----
-
-## Questão 2 — A format string tem de estar na stack para existir vulnerabilidade?
-
-Resposta curta: não. A vulnerabilidade MITRE CWE‑134 (Use of Externally‑Controlled Format String) existe sempre que dados controlados pelo utilizador são usados como primeiro argumento de funções tipo `printf`/`fprintf`/`syslog`/etc. (por exemplo, `printf(input)`). O local onde a string reside (stack, heap, segmento estático) não elimina a vulnerabilidade; o que muda é a forma de exploração e os “truques” pedagógicos que ficam disponíveis.
-
-Porque não depende do local:
-- `printf` interpreta a format string e, para cada especificador `%...`, consome argumentos variádicos do frame do chamador. Se o programador não passou argumentos suficientes ou adequados (porque usou diretamente a string do utilizador como formato), a função lê valores do que estiver na stack como se fossem argumentos — originando leaks (`%x/%s`), escrita (`%n`) e DoS. Isto é independente de a própria string viver na stack ou na heap.
-
-Porque o nosso lab coloca a string na stack:
-- No programa vulnerável do SEED, a entrada é copiada para um `char buf[1500]` local e depois chamada via `printf(buf)`. Assim, a format string está na stack do chamador. Isso facilita técnicas didáticas como:
-	- pôr um marcador no início (ex.: `DCBAabcd`) e “andar” com `%08x.` até ele aparecer, calculando um OFFSET;
-	- fazer com que um `%s`/`%n` a seguir ao OFFSET consuma bytes nossos (colocados no início do `buf`) como se fossem argumentos.
-
-O que deixaria de funcionar (tal como ensinado) se a format string estivesse na heap:
-- Task 1 — Crash com muitos `%s`: continua a funcionar. O crash vem de o `%s` tentar desreferenciar um “argumento” inválido lido da stack; basta controlarmos a format string, não precisa de estar na stack.
-- Task 2.A — Descobrir o OFFSET com o marcador: não funciona como no guião. O método depende de os nossos primeiros bytes (marcador) estarem na própria stack; com a string na heap, eles não aparecem na sequência de palavras que `%08x` vai imprimindo.
-- Task 2.B — Imprimir a secret colocando `&secret` nos primeiros 4 bytes e depois `%s`: também não funciona como demonstrado, pelo mesmo motivo — o `%s` não irá consumir os nossos 4 bytes da heap como “argumento” variádico da stack.
-- Task 3.A / 3.B — Escrever em `target` com `%n`: igualmente não funcionaria como mostrado, pois o `%n` não usaria o endereço colocado no início do nosso payload (que estaria na heap, não na lista de argumentos da stack). Existem técnicas alternativas documentadas (ex.: índices posicionais `%k$...`, aproveitar ponteiros úteis já presentes no frame), mas saem do escopo deste guião.
-
-Conclusão:
-- CWE‑134 não exige que a format string esteja na stack; o requisito é o controlo do primeiro argumento da família `printf`. No nosso lab, a escolha de a colocar na stack simplifica a demonstração de OFFSET e o uso direto de `%s/%n` sobre bytes controlados pelo atacante.
-
-Referências rápidas:
-- MITRE CWE‑134 — Use of Externally‑Controlled Format String.
-- SEI CERT (FIO30‑C) — Excluir input não confiável de format strings.
-- OWASP — Format String Attack: visão geral de `%x/%s/%n` e variádicos.
-- SEED Labs — Format String Attack (32‑bit): código do programa vulnerável e guião.
 
 
 ---
@@ -296,4 +266,30 @@ Dicas de alinhamento se `%n` não acertar no endereço certo (fizemos uso da pri
 Resumo Task 3:
 - 3.A: Usando `%n` após `OFFSET=63` walkers de `%08x.`, alterámos `target` para um valor diferente de `0x11223344`.
 - 3.B: Com padding calculado, ajustámos exatamente para `0x5000`.
+
+
+
+---
+
+## Questão 2 — A format string tem de estar na stack para existir vulnerabilidade?
+
+Resposta: não. A vulnerabilidade MITRE CWE‑134 (Use of Externally‑Controlled Format String) existe sempre que dados controlados pelo utilizador são usados como primeiro argumento de funções tipo `printf`/`fprintf`/`syslog`/etc. (por exemplo, `printf(input)`). O local onde a string reside (stack, heap, segmento estático) não elimina a vulnerabilidade; o que muda é a forma de exploração e os “truques”  disponíveis.
+
+Porque não depende do local:
+- `printf` interpreta a format string e, para cada especificador `%...`, consome argumentos variádicos do frame do chamador. Se o programador não passou argumentos suficientes ou adequados (porque usou diretamente a string do utilizador como formato), a função lê valores do que estiver na stack como se fossem argumentos — originando leaks (`%x/%s`), escrita (`%n`) e DoS. Isto é independente de a própria string viver na stack ou na heap.
+
+Porque o nosso lab coloca a string na stack:
+- No programa vulnerável do SEED, a entrada é copiada para um `char buf[1500]` local e depois chamada via `printf(buf)`. Assim, a format string está na stack do chamador. Isso facilita técnicas como:
+	- pôr um marcador no início (ex.: `DCBAabcd`) e “andar” com `%08x.` até ele aparecer, calculando um OFFSET;
+	- fazer com que um `%s`/`%n` a seguir ao OFFSET consuma bytes nossos (colocados no início do `buf`) como se fossem argumentos.
+
+O que deixaria de funcionar (tal como ensinado) se a format string estivesse na heap:
+- Task 1 — Crash com muitos `%s`: continua a funcionar. O crash vem de o `%s` tentar desreferenciar um “argumento” inválido lido da stack; basta controlarmos a format string, não precisa de estar na stack.
+- Task 2.A — Descobrir o OFFSET com o marcador: não funciona como no guião. O método depende de os nossos primeiros bytes (marcador) estarem na própria stack; com a string na heap, eles não aparecem na sequência de palavras que `%08x` vai imprimindo.
+- Task 2.B — Imprimir a secret colocando `&secret` nos primeiros 4 bytes e depois `%s`: também não funciona como demonstrado, pelo mesmo motivo — o `%s` não irá consumir os nossos 4 bytes da heap como “argumento” variádico da stack.
+- Task 3.A / 3.B — Escrever em `target` com `%n`: igualmente não funcionaria como mostrado, pois o `%n` não usaria o endereço colocado no início do nosso payload (que estaria na heap, não na lista de argumentos da stack).
+
+Conclusão:
+- CWE‑134 não exige que a format string esteja na stack; o requisito é o controlo do primeiro argumento da família `printf`. No nosso lab, a escolha de a colocar na stack simplifica a demonstração de OFFSET e o uso direto de `%s/%n` sobre bytes controlados.
+
 
