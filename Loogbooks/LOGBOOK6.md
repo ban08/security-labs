@@ -72,7 +72,7 @@ Ideia chave (slides): o especificador `%s` faz o `printf` interpretar um valor d
 O guião traz um exemplo em `attack-code/build_string.py`.
 
 Notas práticas:
-- O servidor aceita até 1500 bytes; 400×"%s" + newline fica bem dentro do limite.
+- O servidor aceita até 1500 bytes; 400×"%s" + newline fica dentro do limite.
 - O `\n` no fim ajuda o programa no servidor a prosseguir a leitura/print.
 - Se 400 não chegar , aumentar. A heurística é repetir `%s` até que algum argumento-aleatório na stack seja um ponteiro inválido.
 
@@ -273,7 +273,7 @@ Resumo Task 3:
 
 ## Questão 2 — A format string tem de estar na stack para existir vulnerabilidade?
 
-Resposta: não. A vulnerabilidade MITRE CWE‑134 (Use of Externally‑Controlled Format String) existe sempre que dados controlados pelo utilizador são usados como primeiro argumento de funções tipo `printf`/`fprintf`/`syslog`/etc. (por exemplo, `printf(input)`). O local onde a string reside (stack, heap, segmento estático) não elimina a vulnerabilidade; o que muda é a forma de exploração e os “truques”  disponíveis.
+Resposta: não. A vulnerabilidade MITRE CWE‑134 (Use of Externally‑Controlled Format String) existe sempre que dados controlados pelo utilizador são usados como primeiro argumento de funções tipo `printf`/`fprintf`/`syslog`/etc. (por exemplo, `printf(input)`). O local onde a string reside (stack, heap, segmento estático) não elimina a vulnerabilidade; o que muda é a forma de exploração.
 
 Porque não depende do local:
 - `printf` interpreta a format string e, para cada especificador `%...`, consome argumentos variádicos do frame do chamador. Se o programador não passou argumentos suficientes ou adequados (porque usou diretamente a string do utilizador como formato), a função lê valores do que estiver na stack como se fossem argumentos — originando leaks (`%x/%s`), escrita (`%n`) e DoS. Isto é independente de a própria string viver na stack ou na heap.
