@@ -214,8 +214,7 @@ X9N3Q7FJ1Z0Z7VQG1M6K8H5J4P2WQ1S9D8F4T0R5M7N2B9C3V6L1
 [11/26/25]seed@VM:~/.../Files$ grep -i "CATS" vigenere_plain_crypt.txt
 [11/26/25]seed@VM:~/.../Files$   # -> texto não faz sentido, chave "CRYPT" descartada
 
-# 4) Usar a pista da cadeira: tentar chave baseada em "Fundamentos de Segurança Informática"
-#    Suspeita: "FSI" + ano letivo → "FSI25"
+# 4) Suspeita: "FSI" + ano letivo → "FSI25"
 [11/26/25]seed@VM:~/.../Files$ ./vigenere.py dec FSI25 vigenere_cipher.txt > vigenere_plain_fsi25.txt
 [11/26/25]seed@VM:~/.../Files$ head vigenere_plain_fsi25.txt
 INTERCHANGINGMINDCONTROL
