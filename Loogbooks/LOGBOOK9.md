@@ -167,8 +167,7 @@ Objetivo: alterar o byte `50*G` do criptograma, com `G` o número do grupo prát
 
 ## Desafio — Cifra de Vigenère (alfabeto A–Z + 0–9, chave de tamanho 5)
 
-Objetivo: decifrar o criptograma fornecido, com chave de tamanho 5 e alfabeto de 36 símbolos. Pista: “Fundamentos de Segurança Informática”. Pergunta: “O m alfabeto A-Z0-9
-[11/26/25]seed@VM:~/.../Files$ cat > vigenere.pyque deve acontecer aos gatos gordos?”
+Objetivo: decifrar o criptograma fornecido, com chave de tamanho 5 e alfabeto de 36 símbolos. Pista: “Fundamentos de Segurança Informática”. 
 
 ### Principais logs do  terminal:
 ```bash
