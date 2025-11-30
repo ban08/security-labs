@@ -3,10 +3,8 @@
 ## 1. Objetivo
 Explorar a fraqueza de uma construção insegura de MAC (`SHA256(key || ":" || mensagem)`) para realizar um length extension attack e forjar um MAC válido para um pedido estendido, sem conhecer a chave secreta.
 
-<!-- Secção teórica consolidada será distribuída nas tarefas -->
 ## 2. Setup do Ambiente
 
-<!-- Mantido como estava, apenas renumerado -->
 - Construção dos containers:
 ```bash
 dcbuild  
@@ -25,10 +23,12 @@ docksh 56  # ID abreviado
 
 Observação: O domínio aponta para o container que corre a aplicação Flask. ![Dockps](images/10_task0_dockps.png)
 ![Checking hosts](images/10_task0_cathosts.png)
+ A resolução local elimina dependência de DNS externo e permite repetir o ataque sem variações ambientais; qualquer MAC capturado mantém-se válido até mudança explícita da chave.
 
 ## 3. Tarefa 1 – Pedido autenticado honesto
 ####  (Integridade vs Autenticidade & Construção insegura)
 Hashes (`H(m)`) só asseguram integridade. Aqui precisamos de autenticidade, feita com um segredo (`key`). O servidor usa o esquema vulnerável `SHA256(key || ":" || mensagem)` (prefix-MAC), expondo o estado final Merkle–Damgård.
+ Em Merkle–Damgård o digest é exatamente o estado interno após o último bloco. Com prefix-MAC esse estado inclui a chave; 
 ### 3.1 Obtenção de `uid` e `key`
 No container:
 ```bash
@@ -45,6 +45,7 @@ Conteúdo:
 ```
 Par escolhido: `uid=1001`, `key=123456`.
 As chaves em `key.txt` são o segredo partilhado (cliente/servidor) usado para calcular e validar o MAC.
+ Observação de um único pedido legítimo fornece um digest reutilizável; não é necessário extrair a chave se o objetivo é estender a mensagem.
 
 ![Showing key.txt contents](images/10_task1_catkey.png)
 
@@ -59,6 +60,7 @@ Construção da string usada no hash (prefix key + ":"):
 123456:myname=FilipeCamacho&uid=1001&lstcmd=1
 ```
 Isto implementa um esquema de "key prefix" vulnerável a length extension.
+ Reordenar parâmetros mudaria o MAC mas não impediria extensão; a fraqueza é estrutural ao modo prefix.
 
 ### 3.3 Cálculo do MAC
 Comando:
@@ -71,6 +73,7 @@ Resultado:
 ```
 MAC (64 hex): `5fd665c38a0405347d8c95f8d3d8c48bb925fd82b50e84c7444d4c073d06e6c7`.
 `echo -n` evita newline final que alteraria o digest.
+ Digest contém 8 palavras de 32 bits (h0..h7). No ataque atribuiremos estes valores ao contexto interno como novo ponto de partida.
 
 ![MAC sum on echo](images/10_task1_echomes.png)
 
@@ -152,12 +155,14 @@ Cada byte `\xAB` → `%AB`:
 %80%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%01%68
 ```
 Observação: O servidor decodifica `%XX` para bytes originais e preserva alinhamento para a função de hash.
+Percent-encoding garante que bytes não imprimíveis do padding (0x80 e zeros) sobrevivem ao parsing HTTP e chegam intactos à rotina de hashing do servidor.
 
 ## 5. Tarefa 3 – Length Extension Attack
 
 Em SHA-256 (Merkle–Damgård) o digest final é o estado interno depois de todos os blocos. Conhecendo esse estado e o tamanho da mensagem original (incluindo chave) podemos continuar a compressão com dados adicionais.
 ### 5.1 Ideia
 Sabendo `MAC(M)` e o tamanho de `M` (para recomputar padding), continuamos a compressão e obtemos `MAC(M || padding || extra)` sem a chave: estado interno reutilizado.
+Se `D = MAC_k(m)`, então para `m' = m||pad||extra` obtemos `MAC_k(m')` inicializando o compressor com `D` e processando só os blocos adicionais; a chave não é reaplicada.
 
 ### 5.2 MAC original em palavras de 32 bits
 `MAC(M) = 5fd665c38a0405347d8c95f8d3d8c48bb925fd82b50e84c7444d4c073d06e6c7`
@@ -222,9 +227,11 @@ http://www.seedlab-hashlen.com/?myname=FilipeCamacho&uid=1001&lstcmd=1%80%00%00%
 Estrutura: parâmetros originais + padding URL-encoded + parâmetro extra + MAC forjado. Resultado: servidor aceita e devolve conteúdo de `secret.txt`.
 
 ![Showing access to web page](images/10_task3_access.png)
+O servidor interpreta o padding como parte final do bloco original; a porção extra aparece imediatamente a seguir, sendo tratada como continuação legítima.
 
 ### 5.5 Explicação da viabilidade
 Como o servidor usa `SHA256(key || ":" || R)` diretamente, o MAC publicado é o estado interno final após processar `key":"R` (com padding). Conhecendo tamanho total, é possível reconstruir alinhamento e continuar compressão com blocos adicionais.
+Usar HMAC (dupla aplicação com inner/outer key) quebra a viabilidade porque o estado interno do hash interno não é divulgado isoladamente. 
 
 ## 6. Conclusões
 ### Mitigação com HMAC
@@ -234,4 +241,3 @@ HMAC: `H((k' ⊕ opad) || H((k' ⊕ ipad) || m))` evita reutilização do estado
 - A construção ingênua `SHA256(key || mensagem)` é vulnerável a length extension quando o MAC é exposto.
 - Ataque explora Merkle–Damgård: MAC fornece estado interno final que pode ser usado como ponto de partida para mais blocos.
 - Padding correto é crítico; erro invalida o MAC forjado.
-
