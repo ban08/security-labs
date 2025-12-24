@@ -132,7 +132,7 @@ Isto acontece devido ao mecanismo de **validação de hostname** no protocolo TL
 A PKI impediu o ataque MITM com sucesso. Mesmo controlando o DNS e tendo um certificado válido (mas para outro domínio), o atacante não conseguiu impersonar o site alvo sem gerar um alerta no navegador.
 
 ## 8. Tarefa 6: Lançar um Ataque MITM com uma CA Comprometida
-Nesta tarefa, explorámos a fragilidade central da PKI: a confiança absoluta na chave privada da CA. Diferente da Tarefa 5, onde o certificado era inválido para o domínio, aqui simulamos o cenário catastrófico onde a própria autoridade de confiança foi comprometida.
+Nesta tarefa, explorámos a fragilidade central da PKI: a confiança absoluta na chave privada da CA. Diferente da Tarefa 5, onde o certificado era inválido para o domínio, aqui simulamos o cenário onde a própria autoridade de confiança foi comprometida.
 
 **Cenário:**
 Assumimos que o atacante comprometeu a CA raiz e roubou a sua chave privada (`ca.key`). Com esta chave, o atacante tem o poder de emitir certificados para *qualquer* domínio que os navegadores aceitarão como legítimos.
@@ -154,8 +154,7 @@ O navegador realizou a validação padrão do TLS, e o ataque passou em todas as
 3.  **Validade Temporal:** O certificado estava dentro do prazo de validade.
 
 **Conclusão:**
-Este exercício demonstra que a **chave privada da CA é o "Santo Graal" da segurança na Web**.
 -   Na Tarefa 5, o ataque falhou porque o certificado não correspondia ao site (proteção de domínio).
 -   Na Tarefa 6, o ataque teve sucesso porque a raiz de confiança foi subvertida.
 
-Se a chave privada de uma CA for comprometida, um atacante pode realizar ataques MITM transparentes contra qualquer site (Google, Bancos, Redes Sociais). O utilizador não tem forma de distinguir o site real do site falso, pois o navegador valida a criptografia como legítima. É por isso que as CAs reais utilizam Hardware Security Modules (HSM) e segurança física extrema para proteger as suas chaves privadas.
+Se a chave privada de uma CA for comprometida, um atacante pode realizar ataques MITM transparentes contra qualquer site (Google, Bancos, Redes Sociais). O utilizador não tem forma de distinguir o site real do site falso, pois o navegador valida a criptografia como legítima. É por isso que as CAs reais utilizam Hardware Security Modules (HSM) e segurança física para proteger as suas chaves privadas.
