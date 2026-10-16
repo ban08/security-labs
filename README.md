@@ -24,8 +24,8 @@ Each report walks through disabling protections where required (ASLR, stack cana
 
 ## Stack
 
-C, Python, shell, OpenSSL, Scapy, Docker, and the SEED Labs Ubuntu VM. Reports in Markdown with screenshots under `Loogbooks/images/`.
+C, Python, shell, OpenSSL, Scapy, Docker, and the SEED Labs Ubuntu VM. Reports in Markdown with screenshots under `Logbooks/images/`.
 
 ## How to read and reproduce
 
-Start from any file in `Loogbooks/`. Each report is self-contained: it lists the environment, the exact commands, and the expected output, so a lab can be reproduced on the SEED Labs VM by following it top to bottom. The reports themselves are written in Portuguese.
+Start from any file in `Logbooks/`. Each report is self-contained: it lists the environment, the exact commands, and the expected output, so a lab can be reproduced on the SEED Labs VM by following it top to bottom. The reports themselves are written in Portuguese.

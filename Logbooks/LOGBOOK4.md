@@ -1,6 +1,6 @@
 ## LOGBOOK 4 — Environment Variables & Set-UID (SEED Lab) 
 
-This log document  includes exact commands, short technical explanations, and embedded screenshots from our run. Stored screenshots under `Loogbooks/images/`.
+This log document  includes exact commands, short technical explanations, and embedded screenshots from our run. Stored screenshots under `Logbooks/images/`.
 
 Support material: “Basic Concepts” slides and the SEED Lab “Environment Variable and Set-UID Program”.
 
